@@ -20,12 +20,12 @@
         <EditText
             android:id="@+id/imageEditText"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:layout_weight="1"
             android:hint="@string/image"
-            android:inputType="text"
             android:importantForAutofill="no"
+            android:inputType="text"
             android:textAlignment="center"
             android:textSize="24sp"
             android:visibility="gone" />
