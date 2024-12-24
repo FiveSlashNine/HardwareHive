@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.HardwareHive_Backend.CompletedOrder.CompletedOrder;
+import com.example.HardwareHive_Backend.CompletedOrder.CompletedOrderRepository;
 import com.example.HardwareHive_Backend.Hardware.Hardware;
 import com.example.HardwareHive_Backend.Hardware.HardwareRepository;
 import com.example.HardwareHive_Backend.HardwareOrder.HardwareOrder;
@@ -24,6 +26,9 @@ public class ShoppingCartService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CompletedOrderRepository completedOrderRepository;
 
     public void addItemToCart(String userId, HardwareOrder order) {
         Optional<ShoppingCart> shoppingCartOpt = ShoppingCartRepository.findByUserId(userId);
@@ -87,20 +92,28 @@ public class ShoppingCartService {
     
         user.setCredits(user.getCredits() - totalCost);
         userRepository.save(user);
-    
-        List<HardwareOrder> itemsToRemove = new ArrayList<>();
+
+       
+        List<HardwareOrder> completedOrders = new ArrayList<>();
+        CompletedOrder completedOrder = new CompletedOrder(userId, totalCost, completedOrders);
+
         for (HardwareOrder item : shoppingCart.getOrderItems()) {
             Hardware product = item.getItem();
-            if(item.getQuantity() == 0) continue;
-    
+            if (item.getQuantity() == 0) continue;
+
             product.setQuantity(product.getQuantity() - item.getQuantity());
-            hardwareRepository.save(product); 
-            itemsToRemove.add(item);
+            hardwareRepository.save(product);
+
+            item.setShoppingCart(null);
+            item.setCompletedOrder(completedOrder); 
+            completedOrders.add(item); 
         }
-    
-        shoppingCart.removeItems(itemsToRemove);
+
+        
+        completedOrderRepository.save(completedOrder); 
+        shoppingCart.getOrderItems().clear(); 
         ShoppingCartRepository.save(shoppingCart);
-    
+
         return "Purchase completed successfully.";
     }
 

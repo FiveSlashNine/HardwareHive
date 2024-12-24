@@ -53,7 +53,6 @@ docker compose up --build
 
 ## Future Enhancements
 - Secure the api endpoints.
-- Store the orders and allow the admin to view them.
 - Add filters:  Create filter options so that the user can quickly find desired items brand, price, and specifications.
 - Payment Gateway Integration: Add Stripe or PayPal for secure payments.
 - Wishlist Feature: Enable users to save favorite products.

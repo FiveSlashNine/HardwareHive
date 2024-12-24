@@ -1,5 +1,6 @@
 package com.example.HardwareHive_Backend.HardwareOrder;
 
+import com.example.HardwareHive_Backend.CompletedOrder.CompletedOrder;
 import com.example.HardwareHive_Backend.Hardware.Hardware;
 import com.example.HardwareHive_Backend.ShoppingCart.ShoppingCart;
 
@@ -25,8 +26,12 @@ public class HardwareOrder {
     private int quantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="shopping_cart_id")
+    @JoinColumn(name = "shopping_cart_id", nullable = true)
     private ShoppingCart shoppingCart;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "completed_order_id", nullable = true)
+    private CompletedOrder completedOrder;
 
     public HardwareOrder(Hardware item, int quantity) {
         this.item = item;
@@ -66,5 +71,9 @@ public class HardwareOrder {
 
     public void setShoppingCart(ShoppingCart shoppingCart) {
         this.shoppingCart = shoppingCart;
+    }
+
+    public void setCompletedOrder(CompletedOrder completedOrder) {
+        this.completedOrder = completedOrder;
     }
 }
