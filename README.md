@@ -22,7 +22,6 @@ Update application.properties and the docker compose .yml file with your databas
 
 **3. Build and run the spring boot app**
 ```bash
-./gradlew clean build (You need to have a running instance of the postgres db that you will use)
 docker compose up --build
 ```
 

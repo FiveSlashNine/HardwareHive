@@ -6,9 +6,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @OpenAPIDefinition(
         info = @Info(
-                title = "Claims Service",
+                title = "HardwareHive Service",
                 version = "1.0",
-                description = "Claims Information"
+                description = "An api used for an eshop. Handles the items, users and orders"
         ),
         security = {
                 @SecurityRequirement(name = "bearerAuth")
