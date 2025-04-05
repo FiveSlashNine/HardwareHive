@@ -94,17 +94,17 @@ public class UserListFragment extends Fragment implements UserListInterface {
     @Override
     public void updateUserCredits(int pos, double credits) {
         userList.get(pos).setCredits(credits);
-        Call<Void> updateUserCreditsCall = userService.updateUser(userList.get(pos));
+        Call<User> updateUserCreditsCall = userService.updateUser(userList.get(pos));
         try {
             Context context = requireContext();
-            updateUserCreditsCall.enqueue(new Callback<Void>() {
+            updateUserCreditsCall.enqueue(new Callback<User>() {
                 @Override
-                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                     Toast.makeText(context, "User credits have been updated successfully", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
-                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
                     Toast.makeText(context, "Failed to update user credits", Toast.LENGTH_SHORT).show();
                 }
             });

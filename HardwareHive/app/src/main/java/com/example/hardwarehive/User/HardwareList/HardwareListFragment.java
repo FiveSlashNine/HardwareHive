@@ -18,6 +18,7 @@ import com.example.hardwarehive.MainActivity;
 import com.example.hardwarehive.R;
 import com.example.hardwarehive.User.CategoryPicker.CategoryPickerFragment;
 import com.example.hardwarehive.User.ShoppingCart.HardwareOrder;
+import com.example.hardwarehive.User.ShoppingCart.ShoppingCart;
 import com.example.hardwarehive.User.ShoppingCart.ShoppingCartFragment;
 import com.example.hardwarehive.model.Hardware;
 import com.google.firebase.auth.FirebaseAuth;
@@ -120,7 +121,7 @@ public class HardwareListFragment extends Fragment implements HardwareListInterf
     }
 
     private void fetchSimilarItems(HardwareListAdapter adapter, List<Hardware> hardwareList, String itemName) {
-        Call<List<Hardware>> call = hardwareService.findSimilar(itemName);
+        Call<List<Hardware>> call = hardwareService.getSimilarHardware(itemName);
         call.enqueue(new Callback<List<Hardware>>() {
 
             @Override
@@ -134,14 +135,13 @@ public class HardwareListFragment extends Fragment implements HardwareListInterf
 
             @Override
             public void onFailure(@NonNull Call<List<Hardware>> call, @NonNull Throwable t) {
-
             }
         });
     }
 
     // Method used to fetch the items from the api and load them to the recycler view
     public void fetchItems(HardwareListAdapter adapter, List<Hardware> hardwareList, String type){
-        Call<List<Hardware>> call = hardwareService.findAll(type);
+        Call<List<Hardware>> call = hardwareService.getHardwareByCategory(type);
         call.enqueue(new Callback<List<Hardware>>() {
             @Override
             public void onResponse(@NonNull Call<List<Hardware>> call, @NonNull Response<List<Hardware>> response) {
@@ -154,46 +154,74 @@ public class HardwareListFragment extends Fragment implements HardwareListInterf
 
             @Override
             public void onFailure(@NonNull Call<List<Hardware>> call, @NonNull Throwable t) {
-
+          
             }
         });
     }
 
     @Override
     public boolean addItemToCart(int pos, int quantity) {
-        if(hardwareList.get(pos).getQuantity()>=quantity) {
-            Call<Void> addItemCall = shoppingCartService.addItemToCart(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(), new HardwareOrder(hardwareList.get(pos), quantity));
-            addItemCall.enqueue(new Callback<Void>() {
-                @Override
-                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+        String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+        Call<ShoppingCart> getShoppingCartCall = shoppingCartService.getCart(userEmail);
+        getShoppingCartCall.enqueue(new Callback<ShoppingCart>() {
+            @Override
+            public void onResponse(@NonNull Call<ShoppingCart> call, @NonNull Response<ShoppingCart> response) {
+                ShoppingCart shoppingCart = response.body();
 
+                if(hardwareList.get(pos).getQuantity()>=quantity && shoppingCart !=null) {
+                    Call<HardwareOrder> addItemCall = shoppingCartService.addItemToCart(userEmail, new HardwareOrder(hardwareList.get(pos).getId(), shoppingCart.getId(), quantity, false));
+                    addItemCall.enqueue(new Callback<HardwareOrder>() {
+                        @Override
+                        public void onResponse(@NonNull Call<HardwareOrder> call, @NonNull Response<HardwareOrder> response) {
+
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<HardwareOrder> call, @NonNull Throwable t) {
+
+                        }
+                    });
                 }
+            }
 
-                @Override
-                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+            @Override
+            public void onFailure(@NonNull Call<ShoppingCart> call, @NonNull Throwable t) {
 
-                }
-            });
-
-            return true;
-        }
-        return false;
+            }
+        });
+        return hardwareList.get(pos).getQuantity() >= quantity;
     }
 
     @Override
     public void removeItemFromCart(int pos) {
-        Call<Void> addItemCall = shoppingCartService.removeItemFromCart(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(), new HardwareOrder(hardwareList.get(pos), 1));
-        addItemCall.enqueue(new Callback<Void>() {
+        String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+        Call<ShoppingCart> getShoppingCartCall = shoppingCartService.getCart(userEmail);
+        getShoppingCartCall.enqueue(new Callback<ShoppingCart>() {
             @Override
-            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+            public void onResponse(@NonNull Call<ShoppingCart> call, @NonNull Response<ShoppingCart> response) {
+                ShoppingCart shoppingCart = response.body();
+                if(shoppingCart!=null) {
+                    Call<Void> removeItemCall = shoppingCartService.removeItemFromCartUsingHardwareId(userEmail, hardwareList.get(pos).getId());
+                    removeItemCall.enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
 
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+
+                        }
+                    });
+                }
             }
 
             @Override
-            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<ShoppingCart> call, @NonNull Throwable t) {
 
             }
         });
+
     }
 
     public void initializeGoToShoppingCardScreenButton() {

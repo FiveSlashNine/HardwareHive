@@ -91,7 +91,7 @@ public class AdminHardwareListFragment extends Fragment implements AdminHardware
     }
 
     private void fetchSimilarItems(AdminHardwareListAdapter adapter, List<Hardware> hardwareList, String itemName) {
-        Call<List<Hardware>> call = hardwareService.findSimilar(itemName);
+        Call<List<Hardware>> call = hardwareService.getSimilarHardware(itemName);
         call.enqueue(new Callback<List<Hardware>>() {
 
             @Override
@@ -138,7 +138,7 @@ public class AdminHardwareListFragment extends Fragment implements AdminHardware
     public void addNewItemToTheListButtonInitializer() {
         root.findViewById(R.id.addItemToList).setOnClickListener(v -> {
             if(!hardwareList.get(hardwareList.size()-1).getName().equals(" ")){
-                Call<Hardware> call = hardwareService.createDefault(type);
+                Call<Hardware> call = hardwareService.createHardware(new Hardware(type));
                 call.enqueue(new Callback<Hardware>() {
                     @Override
                     public void onResponse(@NonNull Call<Hardware> call, @NonNull Response<Hardware> response) {
@@ -161,11 +161,12 @@ public class AdminHardwareListFragment extends Fragment implements AdminHardware
 
     // Method used to fetch the items from the api and load them to the recycler view
     public void fetchItems(AdminHardwareListAdapter adapter, List<Hardware> hardwareList, String type){
-        Call<List<Hardware>> call = hardwareService.findAll(type);
+        Call<List<Hardware>> call = hardwareService.getHardwareByCategory(type);
         call.enqueue(new Callback<List<Hardware>>() {
             @Override
             public void onResponse(@NonNull Call<List<Hardware>> call, @NonNull Response<List<Hardware>> response) {
                 hardwareList.clear();
+                System.out.println(response.body());
                 hardwareList.addAll(response.body());
                 try{
                     requireActivity().runOnUiThread(adapter::notifyDataSetChanged);
@@ -183,7 +184,7 @@ public class AdminHardwareListFragment extends Fragment implements AdminHardware
     @Override
     public void removeCard(int position) {
         if(type==null) type = pascalToSnake(hardwareList.get(position).getClass().getSimpleName());
-        Call<Void> call = hardwareService.delete(hardwareList.get(position).getId(), type);
+        Call<Void> call = hardwareService.delete(hardwareList.get(position).getId());
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
@@ -205,16 +206,16 @@ public class AdminHardwareListFragment extends Fragment implements AdminHardware
     @Override
     public void updateCard(int position) {
         if(type==null) type = pascalToSnake(hardwareList.get(position).getClass().getSimpleName());
-        Call<Void> call = hardwareService.update(type, hardwareList.get(position));
-        call.enqueue(new Callback<Void>() {
+        Call<Hardware> call = hardwareService.update(hardwareList.get(position));
+        call.enqueue(new Callback<Hardware>() {
             @Override
-            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+            public void onResponse(@NonNull Call<Hardware> call, @NonNull Response<Hardware> response) {
                 Toast.makeText(getContext(), "Item has been updated", Toast.LENGTH_SHORT).show();
                 requireActivity().runOnUiThread(()->adapter.notifyItemChanged(position));
             }
 
             @Override
-            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<Hardware> call, @NonNull Throwable t) {
             }
         });
     }

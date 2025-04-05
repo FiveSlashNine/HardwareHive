@@ -34,8 +34,8 @@ public class MainActivity extends AppCompatActivity {
             switchFragment(new LoginFragment());
         } else {
             try {
-                String userId = user.getUid();
-                Call<User> getUserCall = Retrofit2Client.createService(UserService.class).getUserById(userId);
+                String userEmail = user.getEmail();
+                Call<User> getUserCall = Retrofit2Client.createService(UserService.class).getUserByEmail(userEmail);
                 getUserCall.enqueue(new Callback<User>() {
                     @Override
                     public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {

@@ -19,7 +19,11 @@ import com.example.hardwarehive.MainActivity;
 import com.example.hardwarehive.R;
 import com.example.hardwarehive.User.CategoryPicker.CategoryPickerFragment;
 import com.example.hardwarehive.User.HardwareList.HardwareListFragment;
+import com.example.hardwarehive.model.Hardware;
 import com.google.firebase.auth.FirebaseAuth;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,6 +37,7 @@ import retrofit2.Response;
 public class ShoppingCartFragment extends Fragment implements HardwareOrderListInterface {
     private View root;
     private List<HardwareOrder> orderList;
+    private List<Hardware> hardwareList;
     private ShoppingCartAdapter adapter;
     private ShoppingCartService shoppingCartService;
     private double totalAmount = 0;
@@ -55,7 +60,8 @@ public class ShoppingCartFragment extends Fragment implements HardwareOrderListI
         RecyclerView recyclerView = root.findViewById(R.id.cartRecyclerView);
 
         orderList = new ArrayList<>();
-        adapter = new ShoppingCartAdapter(getContext(), orderList, this);
+        hardwareList = new ArrayList<>();
+        adapter = new ShoppingCartAdapter(getContext(), hardwareList, orderList,this);
 
         loadOrderList(orderList);
 
@@ -80,13 +86,18 @@ public class ShoppingCartFragment extends Fragment implements HardwareOrderListI
             }
 
             if(hasQuantity) {
-                String userId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-                Call<String> shoppingCartCall = shoppingCartService.purchaseCart(userId);
-                shoppingCartCall.enqueue(new Callback<String>() {
+                String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+                Call<Void> shoppingCartCall = shoppingCartService.purchase(userEmail);
+                shoppingCartCall.enqueue(new Callback<Void>() {
                     @Override
-                    public void onResponse(@NonNull Call<String> call, @NonNull Response<String> response) {
+                    public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                        Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                         if(response.isSuccessful()) {
-                            Toast.makeText(getContext(), response.body(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "Purchase Successful", Toast.LENGTH_SHORT).show();
                             List<HardwareOrder> itemsToRemove = new ArrayList<>();
                             for (int i = 0; i < orderList.size(); i++) {
                                 if (orderList.get(i).getQuantity() != 0) {
@@ -99,22 +110,24 @@ public class ShoppingCartFragment extends Fragment implements HardwareOrderListI
                             totalAmount = 0;
                             requireActivity().runOnUiThread(() -> ((TextView) root.findViewById(R.id.amountTextView)).setText(String.valueOf(totalAmount)));
                         } else {
+                            String message = "Unknown error";
+
                             try {
-                                String message = response.errorBody().string();
-                                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-                            } catch (Exception ignored) {}
-                            for(HardwareOrder order : orderList) {
-                                if(order.getQuantity()>order.getItem().getQuantity()){
-                                    Toast.makeText(getContext(), "we only have " + order.getItem().getQuantity() + " " + order.getItem().getName() + " in stock", Toast.LENGTH_SHORT).show();
-                                    break;
+                                String errorBody = response.errorBody() != null ? response.errorBody().string() : null;
+
+                                if (errorBody != null) {
+                                    JSONObject jsonObject = new JSONObject(errorBody);
+
+                                    if (jsonObject.has("message")) {
+                                        message = jsonObject.getString("message");
+                                    }
                                 }
+                            } catch (IOException | JSONException e) {
+                                e.printStackTrace();
                             }
+
+                            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
                         }
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
-
                     }
                 });
             }
@@ -123,79 +136,110 @@ public class ShoppingCartFragment extends Fragment implements HardwareOrderListI
 
     @Override
     public void removeItemFromCart(int pos) {
-        totalAmount -= orderList.get(pos).getQuantity() * orderList.get(pos).getItem().getPrice();
-        Call<Void> addItemCall = shoppingCartService.removeItemFromCart(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(), orderList.get(pos));
-        addItemCall.enqueue(new Callback<Void>() {
+        String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+
+
+        Call<Void> removeItemCall = shoppingCartService.removeItemFromCart(userEmail, orderList.get(pos).getId());
+        removeItemCall.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 orderList.remove(pos);
                 try {
                     requireActivity().runOnUiThread(()->adapter.notifyItemRemoved(pos));
                 } catch(Exception ignored) {}
-                requireActivity().runOnUiThread(()->((TextView)root.findViewById(R.id.amountTextView)).setText(String.valueOf(totalAmount)));
+                getNewTotalAmount(userEmail);
             }
 
             @Override
             public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
-                totalAmount += orderList.get(pos).getQuantity() * orderList.get(pos).getItem().getPrice();
-                requireActivity().runOnUiThread(()->((TextView)root.findViewById(R.id.amountTextView)).setText(String.valueOf(totalAmount)));
+                getNewTotalAmount(userEmail);
+            }
+        });
+    }
+
+    private void getNewTotalAmount(String userEmail) {
+        Call<Double> getTotalAMount = shoppingCartService.getTotalCost(userEmail);
+        getTotalAMount.enqueue(new Callback<Double>() {
+            @Override
+            public void onResponse(@NonNull Call<Double> call, @NonNull Response<Double> response) {
+                if (response.body()!=null) {
+                    totalAmount = response.body();
+                    requireActivity().runOnUiThread(() -> ((TextView) root.findViewById(R.id.amountTextView)).setText(String.valueOf(totalAmount)));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Double> call, @NonNull Throwable t) {
+                t.printStackTrace();
             }
         });
     }
 
     @Override
     public void updateItemQuantity(int pos, int quantity) {
-        totalAmount -= orderList.get(pos).getQuantity() * orderList.get(pos).getItem().getPrice();
-        int oldQuantity = orderList.get(pos).getQuantity();
+        String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+
         orderList.get(pos).setQuantity(quantity);
-        Call<Void> shoppingCartCall = shoppingCartService.updateItemFromCart(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid(), orderList.get(pos));
-        shoppingCartCall.enqueue(new Callback<Void>() {
+        Call<HardwareOrder> shoppingCartCall = shoppingCartService.updateItemInCart(userEmail, orderList.get(pos));
+        shoppingCartCall.enqueue(new Callback<HardwareOrder>() {
             @Override
-            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
-                totalAmount += orderList.get(pos).getQuantity() * orderList.get(pos).getItem().getPrice();
-                requireActivity().runOnUiThread(()->((TextView)root.findViewById(R.id.amountTextView)).setText(String.valueOf(totalAmount)));
+            public void onResponse(@NonNull Call<HardwareOrder> call, @NonNull Response<HardwareOrder> response) {
+                getNewTotalAmount(userEmail);
             }
 
             @Override
-            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
-                totalAmount += oldQuantity * orderList.get(pos).getItem().getPrice();
-                requireActivity().runOnUiThread(()->((TextView)root.findViewById(R.id.amountTextView)).setText(String.valueOf(totalAmount)));
+            public void onFailure(@NonNull Call<HardwareOrder> call, @NonNull Throwable t) {
+                getNewTotalAmount(userEmail);
             }
         });
+
     }
 
     public void loadOrderList(List<HardwareOrder> orderList){
-        Call<ShoppingCart> shoppingCartCall = shoppingCartService.getCart(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid());
+        String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+        Call<List<HardwareOrder>> shoppingCartCall = shoppingCartService.getCartItems(userEmail);
 
-        shoppingCartCall.enqueue(new Callback<ShoppingCart>() {
+        shoppingCartCall.enqueue(new Callback<List<HardwareOrder>>() {
             @Override
-            public void onResponse(@NonNull Call<ShoppingCart> call, @NonNull Response<ShoppingCart> response) {
+            public void onResponse(@NonNull Call<List<HardwareOrder>> call, @NonNull Response<List<HardwareOrder>> response) {
                 new Thread( () -> {
                     if (response.body()!=null) {
-                        ShoppingCart shoppingCart = response.body();
+                        List<HardwareOrder> shoppingCart = response.body();
                         orderList.clear();
-                        orderList.addAll(shoppingCart.getOrderItems());
-                        calcTotal();
-                        try {
-                            requireActivity().runOnUiThread(adapter::notifyDataSetChanged);
-                            requireActivity().runOnUiThread(()->((TextView)root.findViewById(R.id.amountTextView)).setText(String.valueOf(totalAmount)));
-                        } catch(Exception ignored) {}
+                        orderList.addAll(shoppingCart);
+                        loadHardwareList();
+                        getNewTotalAmount(userEmail);
                     }
                 }).start();
             }
 
             @Override
-            public void onFailure(@NonNull Call<ShoppingCart> call, @NonNull Throwable t) {
-
+            public void onFailure(@NonNull Call<List<HardwareOrder>> call, @NonNull Throwable t) {
+                t.printStackTrace();
             }
         });
     }
 
-    public void calcTotal() {
-        totalAmount = 0;
-        for(int i=0; i<orderList.size(); i++) {
-            totalAmount += orderList.get(i).getQuantity() * orderList.get(i).getItem().getPrice();
-        }
+    public void loadHardwareList() {
+        String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getEmail();
+        ShoppingCartService shoppingCartService = Retrofit2Client.createService(ShoppingCartService.class);
+        Call<List<Hardware>> getHardwareListCall = shoppingCartService.getHardwareOrderItem(userEmail);
+        getHardwareListCall.enqueue(new Callback<List<Hardware>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Hardware>> call, @NonNull Response<List<Hardware>> response) {
+                hardwareList.clear();
+                hardwareList.addAll(response.body());
+                try {
+                    requireActivity().runOnUiThread(adapter::notifyDataSetChanged);
+                } catch(Exception ignored) {
+
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<Hardware>> call, @NonNull Throwable t) {
+            }
+        });
     }
 
     // Method used by the goBackButton to return to the hardware list

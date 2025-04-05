@@ -8,23 +8,28 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface HardwareService {
-    @GET("hardware/{type}")
-    Call<List<Hardware>> findAll(@Path("type") String type);
+    @GET("hardware")
+    Call<List<Hardware>> getHardware();
 
-    @GET("hardware/{type}/default")
-    Call<Hardware> createDefault(@Path("type") String type);
+    @POST("hardware")
+    Call<Hardware> createHardware(@Body Hardware hardware);
 
-    @PUT("hardware/{type}")
-    Call<Void> update(@Path("type") String type, @Body Hardware hardware);
+    @PUT("hardware")
+    Call<Hardware> update(@Body Hardware hardware);
 
-    @DELETE("hardware/{type}/{id}")
-    Call<Void> delete(@Path("id") long id, @Path("type") String type);
+    @DELETE("hardware/{id}")
+    Call<Void> delete(@Path("id") long id);
 
     @GET("hardware/search")
-    Call<List<Hardware>> findSimilar(@Query("name") String name);
+    Call<List<Hardware>> getSimilarHardware(@Query("name") String name);
+
+    @GET("hardware/getHardwareByCategory")
+    Call<List<Hardware>> getHardwareByCategory(@Query("category") String category);
+
 }

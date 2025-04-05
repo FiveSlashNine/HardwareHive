@@ -107,7 +107,7 @@ public class HardwareListAdapter extends RecyclerView.Adapter<HardwareListAdapte
 
                 int pos = getAdapterPosition();
                 if(pos != RecyclerView.NO_POSITION) {
-                    recyclerView.setAdapter(new ExtendedHardwareListAdapter(context, hardwareList.get(pos).getSpecs()));
+                    recyclerView.setAdapter(new ExtendedHardwareListAdapter(context, hardwareList.get(pos).getHardwareSpecs()));
 
                     recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
 

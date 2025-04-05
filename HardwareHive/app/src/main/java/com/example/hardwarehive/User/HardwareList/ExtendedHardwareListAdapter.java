@@ -35,7 +35,7 @@ public class ExtendedHardwareListAdapter extends RecyclerView.Adapter<ExtendedHa
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         holder.hardwareInfo.setText(context.getString(R.string.word_before_colon, hardwareSpecList.get(position).getName()));
-        holder.hardwareVal.setText(hardwareSpecList.get(position).getVal());
+        holder.hardwareVal.setText(hardwareSpecList.get(position).getValue());
     }
 
     @Override

@@ -259,7 +259,7 @@ public class AdminHardwareListAdapter extends RecyclerView.Adapter<AdminHardware
 
                 int pos = getAdapterPosition();
                 if(pos != RecyclerView.NO_POSITION) {
-                    recyclerView.setAdapter(new AdminExtendedHardwareListAdapter(context, hardwareList.get(pos).getSpecs()));
+                    recyclerView.setAdapter(new AdminExtendedHardwareListAdapter(context, hardwareList.get(pos)));
 
                     recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
 

@@ -1,28 +1,45 @@
 package com.example.hardwarehive.User.ShoppingCart;
 
-import com.example.hardwarehive.model.Hardware;
-
-import java.util.Objects;
-
 public class HardwareOrder {
     private Long id;
-    private Hardware item;
+    private Long hardwareId;
+    private Long shoppingCartId;
     private int quantity;
-    private ShoppingCart shoppingCart;
+    private boolean isCompleted;
 
-    public HardwareOrder(Hardware item, int quantity) {
-        this.item = item;
+    public HardwareOrder(Long hardwareId, Long shoppingCartId, int quantity, boolean isCompleted) {
+        this.hardwareId = hardwareId;
+        this.shoppingCartId = shoppingCartId;
         this.quantity = quantity;
+        this.isCompleted = isCompleted;
     }
 
-    public HardwareOrder() {}
+    public HardwareOrder() {
 
-    public Hardware getItem() {
-        return item;
     }
 
-    public void setItem(Hardware item) {
-        this.item = item;
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getHardwareId() {
+        return hardwareId;
+    }
+
+    public void setHardwareId(Long hardwareId) {
+        this.hardwareId = hardwareId;
+    }
+
+    public Long getShoppingCartId() {
+        return shoppingCartId;
+    }
+
+    public void setShoppingCartId(Long shoppingCartId) {
+        this.shoppingCartId = shoppingCartId;
     }
 
     public int getQuantity() {
@@ -33,16 +50,11 @@ public class HardwareOrder {
         this.quantity = quantity;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        HardwareOrder that = (HardwareOrder) o;
-        return Objects.equals(item, that.item);
+    public boolean isCompleted() {
+        return isCompleted;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(item);
+    public void setCompleted(boolean completed) {
+        isCompleted = completed;
     }
 }

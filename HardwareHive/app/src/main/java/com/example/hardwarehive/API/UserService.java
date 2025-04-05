@@ -6,7 +6,6 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
-import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
@@ -16,15 +15,12 @@ public interface UserService {
     @GET("users")
     Call<List<User>> getAllUsers();
 
-    @GET("users/{userId}")
-    Call<User> getUserById(@Path("userId") String userId);
+    @GET("users/userEmail/{userEmail}")
+    Call<User> getUserByEmail(@Path("userEmail") String userEmail);
 
     @POST("users")
-    Call<Void> createUser(@Body User user);
+    Call<User> createUser(@Body User user);
 
     @PUT("users")
-    Call<Void> updateUser(@Body User user);
-
-    @DELETE("users")
-    Call<Void> deleteUser(@Body User user);
+    Call<User> updateUser(@Body User user);
 }

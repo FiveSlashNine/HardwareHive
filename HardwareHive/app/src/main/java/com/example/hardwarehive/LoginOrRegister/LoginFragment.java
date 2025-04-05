@@ -71,8 +71,7 @@ public class LoginFragment extends Fragment {
                             FirebaseUser user = mAuth.getCurrentUser();
                             if(user!=null) {
                                 try {
-                                    String userId = Objects.requireNonNull(mAuth.getCurrentUser()).getUid();
-                                    Call<User> getUserCall = userService.getUserById(userId);
+                                    Call<User> getUserCall = userService.getUserByEmail(email);
                                     getUserCall.enqueue(new Callback<User>() {
                                         @Override
                                         public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {

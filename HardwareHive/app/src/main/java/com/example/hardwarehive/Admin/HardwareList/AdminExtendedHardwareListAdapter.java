@@ -12,18 +12,18 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hardwarehive.R;
+import com.example.hardwarehive.model.Hardware;
 import com.example.hardwarehive.model.HardwareSpec;
 
 import java.util.List;
-
 
 public class AdminExtendedHardwareListAdapter extends RecyclerView.Adapter<AdminExtendedHardwareListAdapter.MyViewHolder> {
     private final Context context;
     private final List<HardwareSpec> hardwareSpecList;
 
-    public AdminExtendedHardwareListAdapter(Context context, List<HardwareSpec> hardwareSpecList){
+    public AdminExtendedHardwareListAdapter(Context context, Hardware hardware){
         this.context = context;
-        this.hardwareSpecList = hardwareSpecList;
+        this.hardwareSpecList = hardware.getHardwareSpecs();
     }
 
     @NonNull
@@ -37,7 +37,7 @@ public class AdminExtendedHardwareListAdapter extends RecyclerView.Adapter<Admin
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         holder.hardwareInfo.setText(context.getString(R.string.word_before_colon, hardwareSpecList.get(position).getName()));
-        holder.hardwareVal.setText(hardwareSpecList.get(position).getVal());
+        holder.hardwareVal.setText(hardwareSpecList.get(position).getValue());
     }
 
     @Override
@@ -50,7 +50,6 @@ public class AdminExtendedHardwareListAdapter extends RecyclerView.Adapter<Admin
 
         public MyViewHolder(@NonNull View itemView, List<HardwareSpec> hardwareSpecList) {
             super(itemView);
-
             hardwareInfo = itemView.findViewById(R.id.hardwareInfo);
             hardwareVal = itemView.findViewById(R.id.hardwareVal);
 
@@ -67,7 +66,7 @@ public class AdminExtendedHardwareListAdapter extends RecyclerView.Adapter<Admin
 
                 @Override
                 public void afterTextChanged(Editable s) {
-                    hardwareSpecList.get(getAdapterPosition()).setVal(String.valueOf(s));
+                    hardwareSpecList.get(getAdapterPosition()).setValue(String.valueOf(s));
                 }
             });
         }

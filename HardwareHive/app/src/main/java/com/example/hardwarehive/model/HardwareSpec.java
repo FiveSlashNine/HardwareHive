@@ -1,20 +1,17 @@
 package com.example.hardwarehive.model;
 
-import java.util.Objects;
-
 public class HardwareSpec {
-    private Long id;
     private String name;
-    private String val;
+    private String value;
 
-    public HardwareSpec(String name, String val){
+    public HardwareSpec(String name, String value){
         this.name = name;
-        this.val = val;
+        this.value = value;
     }
 
     public HardwareSpec(String name){
         this.name = name;
-        this.val = " ";
+        this.value = " ";
     }
 
     public HardwareSpec(){}
@@ -27,24 +24,12 @@ public class HardwareSpec {
         this.name = name;
     }
 
-    public String getVal() {
-        return val;
+    public String getValue() {
+        return value;
     }
 
-    public void setVal(String val) {
-        this.val = val;
+    public void setValue(String value) {
+        this.value = value;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        HardwareSpec that = (HardwareSpec) o;
-        return Objects.equals(name, that.name) && Objects.equals(val, that.val);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, val);
-    }
 }

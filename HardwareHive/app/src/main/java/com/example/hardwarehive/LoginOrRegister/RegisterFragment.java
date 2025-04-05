@@ -26,6 +26,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
 public class RegisterFragment extends Fragment {
     private FirebaseAuth mAuth;
     private UserService userService;
@@ -87,39 +88,35 @@ public class RegisterFragment extends Fragment {
                     Toast.makeText(getContext(), "The registration was successful.", Toast.LENGTH_SHORT).show();
 
                     try{
-                        String userId = Objects.requireNonNull(mAuth.getCurrentUser()).getUid();
-
                         SwitchCompat isAdminSwitch = root.findViewById(R.id.isAdminSwitch);
                         if(isAdminSwitch.isChecked()) {
-                            User u = new User(email, username, address, 0, true, userId);
-                            Call<Void> createUser = userService.createUser(u);
-                            createUser.enqueue(new Callback<Void>() {
+                            User u = new User(email, username, address, 0, true);
+                            Call<User> createUser = userService.createUser(u);
+                            createUser.enqueue(new Callback<User>() {
                                 @Override
-                                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                                public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                                     AdminCategoryPickerFragment adminCategoryPickerFragment = new AdminCategoryPickerFragment();
                                     ((MainActivity) requireActivity()).switchFragment(adminCategoryPickerFragment);
                                 }
 
                                 @Override
-                                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
-
+                                public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
                                 }
                             });
                         }
                         else {
-                            User u = new User(email, username, address, 0, false, userId);
-                            Call<Void> createUser = userService.createUser(u);
-                            createUser.enqueue(new Callback<Void>() {
+                            User u = new User(email, username, address, 0, false);
+                            Call<User> createUser = userService.createUser(u);
+                            createUser.enqueue(new Callback<User>() {
 
                                 @Override
-                                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                                public void onResponse(@NonNull Call<User> call, @NonNull Response<User> response) {
                                     CategoryPickerFragment categoryPickerFragment = new CategoryPickerFragment();
                                     ((MainActivity) requireActivity()).switchFragment(categoryPickerFragment);
                                 }
 
                                 @Override
-                                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
-
+                                public void onFailure(@NonNull Call<User> call, @NonNull Throwable t) {
                                 }
                             });
                         }

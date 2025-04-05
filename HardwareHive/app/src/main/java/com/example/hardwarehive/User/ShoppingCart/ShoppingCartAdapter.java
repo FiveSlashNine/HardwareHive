@@ -15,20 +15,22 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hardwarehive.R;
+import com.example.hardwarehive.model.Hardware;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-
 public class ShoppingCartAdapter extends RecyclerView.Adapter<ShoppingCartAdapter.MyViewHolder> {
     private final Context context;
-    private final List<HardwareOrder> orderList;
+    private final List<Hardware> hardwareList;
     private final HardwareOrderListInterface orderListInterface;
+    private final List<HardwareOrder> orderList;
 
-    public ShoppingCartAdapter(Context context, List<HardwareOrder> orderList, HardwareOrderListInterface orderListInterface) {
+    public ShoppingCartAdapter(Context context, List<Hardware> hardwareList, List<HardwareOrder> orderList, HardwareOrderListInterface orderListInterface) {
         this.context = context;
-        this.orderList = orderList;
         this.orderListInterface = orderListInterface;
+        this.hardwareList = hardwareList;
+        this.orderList = orderList;
     }
 
     @NonNull
@@ -36,16 +38,16 @@ public class ShoppingCartAdapter extends RecyclerView.Adapter<ShoppingCartAdapte
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.order_item, parent, false);
-        return new MyViewHolder(view, orderList, orderListInterface);
+        return new MyViewHolder(view, hardwareList, orderListInterface);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        String imagePath = orderList.get(position).getItem().getImageURL();
+        String imagePath = hardwareList.get(position).getImageURL();
         if(!imagePath.equals(" "))
             Picasso.get().load(imagePath).placeholder(R.drawable.ic_launcher_foreground).fit().error(R.drawable.ic_launcher_foreground).into(holder.imageView);
-        holder.name.setText(orderList.get(position).getItem().getName());
-        holder.price.setText(String.valueOf(orderList.get(position).getItem().getPrice()));
+        holder.name.setText(hardwareList.get(position).getName());
+        holder.price.setText(String.valueOf(hardwareList.get(position).getPrice()));
         holder.quantity.setText(String.valueOf(orderList.get(position).getQuantity()));
     }
 
@@ -60,11 +62,11 @@ public class ShoppingCartAdapter extends RecyclerView.Adapter<ShoppingCartAdapte
         private final TextView name, price;
         private final EditText quantity;
         private final HardwareOrderListInterface orderListInterface;
-        List<HardwareOrder> orderList;
+        List<Hardware> orderList;
 
         private final Handler handler = new Handler(Looper.getMainLooper());
 
-        public MyViewHolder(@NonNull View itemView, List<HardwareOrder> orderList, HardwareOrderListInterface orderListInterface) {
+        public MyViewHolder(@NonNull View itemView, List<Hardware> orderList, HardwareOrderListInterface orderListInterface) {
             super(itemView);
 
             imageView = itemView.findViewById(R.id.imageView);

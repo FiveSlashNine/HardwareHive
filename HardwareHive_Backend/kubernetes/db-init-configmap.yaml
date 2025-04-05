@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  schema.sql: "CREATE TABLE IF NOT EXISTS hardware (\r\n    id SERIAL PRIMARY KEY,\r\n
+    \   name VARCHAR(255) NOT NULL,\r\n    image_url VARCHAR(500),\r\n    price DECIMAL(10,
+    2) NOT NULL,\r\n    quantity INT NOT NULL,\r\n    category VARCHAR(255) NOT NULL,\r\n
+    \   hardware_specs JSON\r\n);\r\n\r\nCREATE TABLE IF NOT EXISTS app_user (\r\n
+    \   id SERIAL PRIMARY KEY,\r\n    email VARCHAR(255) UNIQUE NOT NULL,\r\n    username
+    VARCHAR(255) UNIQUE NOT NULL,\r\n    home_address TEXT,\r\n    credits DECIMAL(10,
+    2) NOT NULL DEFAULT 0,\r\n    is_admin BOOLEAN DEFAULT FALSE\r\n);\r\n\r\nCREATE
+    TABLE IF NOT EXISTS shopping_cart (\r\n    id SERIAL PRIMARY KEY,\r\n    user_email
+    VARCHAR(255) NOT NULL,\r\n    FOREIGN KEY (user_email) REFERENCES app_user(email)
+    ON DELETE CASCADE\r\n);\r\n\r\nCREATE TABLE IF NOT EXISTS hardware_order (\r\n
+    \   id SERIAL PRIMARY KEY,\r\n    shopping_cart_id INT NOT NULL,\r\n    hardware_id
+    INT NOT NULL,\r\n    quantity INT NOT NULL,\r\n    is_completed BOOLEAN NOT NULL,\r\n
+    \   FOREIGN KEY (shopping_cart_id) REFERENCES shopping_cart(id) ON DELETE CASCADE,\r\n
+    \   FOREIGN KEY (hardware_id) REFERENCES hardware(id) ON DELETE CASCADE\r\n);"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: db-init-script
